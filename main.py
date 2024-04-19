@@ -36,23 +36,34 @@ def fast_MED(S, T, cache=None):
     return result
 
 def fast_align_MED(S, T, cache=None):
-    if cache is None:
-        cache = {}
-    if (S, T) in cache:
-        return cache[(S, T)]
-    if S == "":
-        return ("-" * len(T), T)
-    if T == "":
-        return (S, "-" * len(S))
-    if S[0] == T[0]:
-        edited_S, edited_T = fast_align_MED(S[1:], T[1:], cache)
-        result = (S[0] + edited_S, T[0] + edited_T)
-    else:
-        insert_S, insert_T = fast_align_MED(S, T[1:], cache)
-        delete_S, delete_T = fast_align_MED(S[1:], T, cache)
-        if (1 + len(insert_S)) <= (1 + len(delete_S)):
-            result = ("-" + insert_S, T[0] + insert_T)
-        else:
-            result = (S[0] + delete_S, "-" + delete_T)
-    cache[(S, T)] = result
-    return result
+  if cache is None:
+      cache = {}
+  if (S, T) in cache:
+      return cache[(S, T)]
+
+  if S == "":
+      return ("-" * len(T), T)
+  if T == "":
+      return (S, "-" * len(T))
+
+  # If characters match, proceed to the next character in both strings
+  if S[0] == T[0]:
+      edited_S, edited_T = fast_align_MED(S[1:], T[1:], cache)
+      result = (S[0] + edited_S, T[0] + edited_T)
+  else:
+      # Compute cost for inserting a character from T into S
+      insert_S, insert_T = fast_align_MED(S, T[1:], cache)
+      insert_cost = 1 + len(insert_S)  # cost of insertion
+
+      # Compute cost for deleting a character from S
+      delete_S, delete_T = fast_align_MED(S[1:], T, cache)
+      delete_cost = 1 + len(delete_S)  # cost of deletion
+
+      # Compare the costs and choose the lesser cost operation
+      if insert_cost <= delete_cost:
+          result = ("-" + insert_S, T[0] + insert_T)
+      else:
+          result = (S[0] + delete_S, "-" + delete_T)
+
+  cache[(S, T)] = result
+  return result
