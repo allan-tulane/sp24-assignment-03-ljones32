@@ -2,68 +2,53 @@ from collections import Counter
 import math
 import queue
 
-####### Problem 3 #######
+# Define test cases and correct alignments for validation
+test_pairs = [('book', 'back'), ('kookaburra', 'kookybird'), ('elephant', 'relevant'), ('AAAGAATTCA', 'AAATCA')]
+correct_alignments = [('b--ook', 'bac--k'), ('kook-ab-ur-ra', 'kooky-bi-rd--'), ('-ele-phant', 'relev--ant'), ('AAAGAATTCA', 'AAA---T-CA')]
 
-test_cases = [('book', 'back'), ('kookaburra', 'kookybird'),
-              ('elephant', 'relevant'), ('AAAGAATTCA', 'AAATCA')]
-alignments = [('b--ook', 'bac--k'), ('kook-ab-urr-a', 'kooky-bi-r-d-'),
-              ('relev--ant', '-ele-phant'), ('AAAGAATTCA', 'AAA---T-CA')]
-
-def MED(S, T):
-    if S == "":
-        return len(T)
-    if T == "":
-        return len(S)
-    if S[0] == T[0]:
-        return MED(S[1:], T[1:])
+def simple_MED(source, target):
+    """Calculate the Minimum Edit Distance using a simple recursive method."""
+    if not source:
+        return len(target)
+    if not target:
+        return len(source)
+    if source[0] == target[0]:
+        return simple_MED(source[1:], target[1:])
     else:
-        return 1 + min(MED(S[1:], T), MED(S, T[1:]))
+        return 1 + min(simple_MED(source, target[1:]), simple_MED(source[1:], target))
 
-def fast_MED(S, T, cache=None):
-    if cache is None:
-        cache = {}
-    if (S, T) in cache:
-        return cache[(S, T)]
-    if S == "":
-        return len(T)
-    if T == "":
-        return len(S)
-    if S[0] == T[0]:
-        result = fast_MED(S[1:], T[1:], cache)
+def memoized_MED(source, target, memo={}):
+    """Calculate the Minimum Edit Distance using memoization to avoid redundant calculations."""
+    if (source, target) in memo:
+        return memo[(source, target)]
+    if not source:
+        return len(target)
+    if not target:
+        return len(source)
+    if source[0] == target[0]:
+        memo[(source, target)] = memoized_MED(source[1:], target[1:], memo)
     else:
-        result = 1 + min(fast_MED(S[1:], T, cache), fast_MED(S, T[1:], cache))
-    cache[(S, T)] = result
-    return result
+        memo[(source, target)] = 1 + min(memoized_MED(source, target[1:], memo), memoized_MED(source[1:], target, memo))
+    return memo[(source, target)]
 
-def fast_align_MED(S, T, cache=None):
-  if cache is None:
-      cache = {}
-  if (S, T) in cache:
-      return cache[(S, T)]
-
-  if S == "":
-      return ("-" * len(T), T)
-  if T == "":
-      return (S, "-" * len(T))
-
-  # If characters match, proceed to the next character in both strings
-  if S[0] == T[0]:
-      edited_S, edited_T = fast_align_MED(S[1:], T[1:], cache)
-      result = (S[0] + edited_S, T[0] + edited_T)
-  else:
-      # Compute cost for inserting a character from T into S
-      insert_S, insert_T = fast_align_MED(S, T[1:], cache)
-      insert_cost = 1 + len(insert_S)  # cost of insertion
-
-      # Compute cost for deleting a character from S
-      delete_S, delete_T = fast_align_MED(S[1:], T, cache)
-      delete_cost = 1 + len(delete_S)  # cost of deletion
-
-      # Compare the costs and choose the lesser cost operation
-      if insert_cost <= delete_cost:
-          result = ("-" + insert_S, T[0] + insert_T)
-      else:
-          result = (S[0] + delete_S, "-" + delete_T)
-
-  cache[(S, T)] = result
-  return result
+def memoized_align_MED(source, target, memo={}):
+    """Calculate the Minimum Edit Distance and return aligned sequences using memoization."""
+    if (source, target) in memo:
+        return memo[(source, target)]
+    if not source:
+        memo[(source, target)] = ("-" * len(target), target)
+        return memo[(source, target)]
+    if not target:
+        memo[(source, target)] = (source, "-" * len(source))
+        return memo[(source, target)]
+    if source[0] == target[0]:
+        aligned_src, aligned_tgt = memoized_align_MED(source[1:], target[1:], memo)
+        memo[(source, target)] = (source[0] + aligned_src, target[0] + aligned_tgt)
+    else:
+        insert_src, insert_tgt = memoized_align_MED(source, target[1:], memo)
+        delete_src, delete_tgt = memoized_align_MED(source[1:], target, memo)
+        if 1 + len(insert_src) <= 1 + len(delete_src):
+            memo[(source, target)] = ("-" + insert_src, target[0] + insert_tgt)
+        else:
+            memo[(source, target)] = (source[0] + delete_src, "-" + delete_tgt)
+    return memo[(source, target)]

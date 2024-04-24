@@ -1,18 +1,18 @@
-from main import MED, fast_MED, fast_align_MED, test_cases, alignments
+from main import MED, fast_MED, fast_align_MED, test_pairs, correct_alignments
 
 def test_MED():
-    for S, T in test_cases:
-        result = fast_MED(S, T)
-        expected = MED(S, T)
-        assert result == expected, f"Failed on {S}, {T}: Expected {expected}, got {result}"
+    for source, target in test_pairs:
+        result = fast_MED(source, target)
+        expected = MED(source, target)
+        assert result == expected, f"Failed on {source}, {target}: Expected {expected}, got {result}"
 
 def test_align():
-    for i in range(len(test_cases)):
-        S, T = test_cases[i]
-        align_S, align_T = fast_align_MED(S, T)
-        expected_S, expected_T = alignments[i]
-        if (align_S != expected_S or align_T != expected_T):
-            print(f"Testing alignment for {S} and {T}")
-            print(f"Expected: ({expected_S}, {expected_T})")
-            print(f"Got: ({align_S}, {align_T})")
-        assert (align_S == expected_S and align_T == expected_T), f"Alignment failed for {S}, {T}"
+    for i in range(len(test_pairs)):
+        source, target = test_pairs[i]
+        aligned_source, aligned_target = fast_align_MED(source, target)
+        expected_source, expected_target = correct_alignments[i]
+        if (aligned_source != expected_source or aligned_target != expected_target):
+            print(f"Testing alignment for {source} and {target}")
+            print(f"Expected: ({expected_source}, {expected_target})")
+            print(f"Got: ({aligned_source}, {aligned_target})")
+        assert (aligned_source == expected_source and aligned_target == expected_target), f"Alignment failed for {source}, {target}"
